@@ -1,0 +1,41 @@
+* {
+   font-family: "Barlow", sans-serif;
+}
+
+.character-card {
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #fff;
+}
+
+.character-card:has(input:checked) {
+    background: #eef6ff;
+}
+
+.wheel-wrapper {
+    position: relative;
+    width: 400px;
+    max-width: 100%;
+}
+
+.wheel-wrapper canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px royalblue;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 14px solid transparent;
+    border-right: 14px solid transparent;
+    border-top: 24px solid crimson;
+    z-index: 2;
+}
