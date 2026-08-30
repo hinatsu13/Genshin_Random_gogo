@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const gridEl = document.getElementById("character-grid");
     const saveBtn = document.getElementById("save-btn");
     const statusEl = document.getElementById("save-status");
+    const regionFilterEl = document.getElementById("filter-region");
+    const elementFilterEl = document.getElementById("filter-element");
+    const filterResetBtn = document.getElementById("filter-reset");
 
     if (!playerId) {
         window.location.href = "player.html";
@@ -34,10 +37,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     const characters = charactersRes;
     const owned = new Set((ownedRes.data || []).map((row) => row.character_id));
 
+    const regions = [...new Set(characters.map((c) => c.region).filter(Boolean))].sort();
+    regions.forEach((region) => {
+        const option = document.createElement("option");
+        option.value = region;
+        option.textContent = region;
+        regionFilterEl.appendChild(option);
+    });
+
+    const elements = [...new Set(characters.map((c) => c.element).filter(Boolean))].sort();
+    elements.forEach((element) => {
+        const option = document.createElement("option");
+        option.value = element;
+        option.textContent = element;
+        elementFilterEl.appendChild(option);
+    });
+
     gridEl.innerHTML = "";
     characters.forEach((character) => {
         const col = document.createElement("div");
         col.className = "col-6 col-sm-4 col-md-3 col-lg-2 mb-2";
+        col.dataset.region = character.region || "";
+        col.dataset.element = character.element || "";
 
         const label = document.createElement("label");
         label.className = "character-card d-flex align-items-center gap-2 p-2 w-100";
@@ -50,12 +71,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         checkbox.checked = owned.has(character.id);
 
         const text = document.createElement("span");
-        text.innerHTML = `${character.name}<br><small class="text-muted">${character.element} &middot; ${character.weapon}</small>`;
+        text.innerHTML = `${character.name}<br><small class="text-muted">${character.region ? character.region + " &middot; " : ""}${character.element} &middot; ${character.weapon}</small>`;
 
         label.appendChild(checkbox);
         label.appendChild(text);
         col.appendChild(label);
         gridEl.appendChild(col);
+    });
+
+    function applyFilters() {
+        const region = regionFilterEl.value;
+        const element = elementFilterEl.value;
+        gridEl.querySelectorAll(":scope > div").forEach((col) => {
+            const matchesRegion = !region || col.dataset.region === region;
+            const matchesElement = !element || col.dataset.element === element;
+            col.hidden = !(matchesRegion && matchesElement);
+        });
+    }
+
+    regionFilterEl.addEventListener("change", applyFilters);
+    elementFilterEl.addEventListener("change", applyFilters);
+    filterResetBtn.addEventListener("click", () => {
+        regionFilterEl.value = "";
+        elementFilterEl.value = "";
+        applyFilters();
     });
 
     saveBtn.addEventListener("click", async () => {
