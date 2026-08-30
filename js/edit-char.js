@@ -8,6 +8,15 @@ const ELEMENT_COLORS = {
     Cryo: "#9fd8e6"
 };
 
+function initialsFor(name) {
+    return name
+        .split(" ")
+        .map((word) => word[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     showSupabaseWarning();
 
@@ -20,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const regionFilterEl = document.getElementById("filter-region");
     const elementFilterEl = document.getElementById("filter-element");
     const filterResetBtn = document.getElementById("filter-reset");
+    const filterSummaryEl = document.getElementById("filter-summary");
 
     if (!playerId) {
         window.location.href = "player.html";
@@ -61,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         col.dataset.element = character.element || "";
 
         const label = document.createElement("label");
-        label.className = "character-card d-flex align-items-center gap-2 p-2 w-100";
+        label.className = "character-card w-100";
         label.style.borderColor = ELEMENT_COLORS[character.element] || "#ccc";
 
         const checkbox = document.createElement("input");
@@ -70,11 +80,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         checkbox.value = character.id;
         checkbox.checked = owned.has(character.id);
 
-        const text = document.createElement("span");
-        text.innerHTML = `${character.name}<br><small class="text-muted">${character.region ? character.region + " &middot; " : ""}${character.element} &middot; ${character.weapon}</small>`;
+        const avatar = document.createElement("div");
+        avatar.className = "character-avatar";
+        avatar.style.backgroundColor = ELEMENT_COLORS[character.element] || "#999";
+        avatar.textContent = initialsFor(character.name);
+
+        const info = document.createElement("div");
+        info.className = "character-info";
+        info.innerHTML = `<span class="character-name">${character.name}</span><small class="text-muted">${character.region ? character.region + " &middot; " : ""}${character.element} &middot; ${character.weapon}</small>`;
 
         label.appendChild(checkbox);
-        label.appendChild(text);
+        label.appendChild(avatar);
+        label.appendChild(info);
         col.appendChild(label);
         gridEl.appendChild(col);
     });
@@ -82,11 +99,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     function applyFilters() {
         const region = regionFilterEl.value;
         const element = elementFilterEl.value;
+        let visibleCount = 0;
         gridEl.querySelectorAll(":scope > div").forEach((col) => {
             const matchesRegion = !region || col.dataset.region === region;
             const matchesElement = !element || col.dataset.element === element;
             col.hidden = !(matchesRegion && matchesElement);
+            if (!col.hidden) visibleCount++;
         });
+
+        if (!region && !element) {
+            filterSummaryEl.textContent = `Showing all ${visibleCount} characters.`;
+        } else {
+            const parts = [];
+            if (region) parts.push(region);
+            if (element) parts.push(element);
+            filterSummaryEl.textContent = `Showing ${visibleCount} characters — ${parts.join(" · ")}.`;
+        }
     }
 
     regionFilterEl.addEventListener("change", applyFilters);
@@ -96,6 +124,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         elementFilterEl.value = "";
         applyFilters();
     });
+    applyFilters();
 
     saveBtn.addEventListener("click", async () => {
         statusEl.classList.add("d-none");
