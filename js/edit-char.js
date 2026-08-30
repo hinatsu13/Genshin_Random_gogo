@@ -83,7 +83,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         const avatar = document.createElement("div");
         avatar.className = "character-avatar";
         avatar.style.backgroundColor = ELEMENT_COLORS[character.element] || "#999";
-        avatar.textContent = initialsFor(character.name);
+
+        const fallback = document.createElement("span");
+        fallback.textContent = initialsFor(character.name);
+        avatar.appendChild(fallback);
+
+        const img = document.createElement("img");
+        img.className = "character-avatar-img";
+        img.src = `images/characters/${character.id}.png`;
+        img.alt = character.name;
+        img.loading = "lazy";
+        img.addEventListener("error", () => img.remove(), { once: true });
+        avatar.appendChild(img);
 
         const info = document.createElement("div");
         info.className = "character-info";
